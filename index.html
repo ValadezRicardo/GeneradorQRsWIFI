@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Generador de QR WiFi</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2d3748;
+      margin-bottom: 2rem;
+      font-size: 2rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #4a5568;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .generate-btn {
+      width: 100%;
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .generate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .generate-btn:active {
+      transform: translateY(0);
+    }
+
+    #qrResult {
+      margin-top: 2rem;
+      text-align: center;
+      padding: 2rem;
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #qrResult h2 {
+      color: #2d3748;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    #qrcode {
+      margin: 1.5rem 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    #qrcode canvas {
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      border: 3px solid white;
+    }
+
+    #wifiInfo {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin: 1.5rem 0;
+      text-align: left;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e2e8f0;
+    }
+
+    #wifiInfo strong {
+      color: #2d3748;
+    }
+
+    .download-btn {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(72, 187, 120, 0.3);
+    }
+
+    .info-section {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .info-section h3 {
+      color: #2d3748;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-section p {
+      color: #4a5568;
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+
+    .security-note {
+      background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+      border: 1px solid #fc8181;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .security-note p {
+      color: #742a2a;
+      margin: 0;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .password-toggle {
+      position: relative;
+    }
+
+    .toggle-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0.25rem;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+    }
+
+    .toggle-btn:hover {
+      background-color: #f7fafc;
+    }
+
+    .feature-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: #4a5568;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 1.5rem;
+        margin: 0.5rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .feature-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📶 Generador QR WiFi</h1>
+    
+    <div class="form-group">
+      <label for="ssid">🏠 Nombre de Red (SSID)</label>
+      <input type="text" id="ssid" placeholder="nombre de la red" required>
+    </div>
+
+    <div class="form-group">
+      <label for="password">🔐 Contraseña</label>
+      <div class="password-toggle">
+        <input type="password" id="password" placeholder="contraseña">
+        <button type="button" class="toggle-btn" onclick="togglePassword()">👁️</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="security">🛡️ Tipo de Seguridad</label>
+      <select id="security">
+        <option value="WPA">WPA/WPA2 (Recomendado)</option>
+        <option value="WEP">WEP (Menos seguro)</option>
+        <option value="nopass">Sin contraseña</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="hidden">👁️ Red oculta</label>
+      <select id="hidden">
+        <option value="false">No</option>
+        <option value="true">Sí</option>
+      </select>
+    </div>
+
+    <button class="generate-btn" onclick="generateQRCode()" id="generateBtn">
+      <span>🎯</span> Generar Código QR
+    </button>
+
+    <div id="qrResult">
+      <h2>✨ ¡Código QR Generado!</h2>
+      <div id="qrcode"></div>
+      <div id="wifiInfo"></div>
+      <button class="download-btn" onclick="downloadQRCode()">
+        <span>💾</span> Descargar QR
+      </button>
+    </div>
+
+    <div class="info-section">
+      <h3>📱 ¿Cómo funciona?</h3>
+      <div class="feature-list">
+        <div class="feature-item">
+          <span>✅</span> Compatible con iOS y Android
+        </div>
+        <div class="feature-item">
+          <span>⚡</span> Conexión instantánea
+        </div>
+        <div class="feature-item">
+          <span>🔒</span> Totalmente seguro
+        </div>
+        <div class="feature-item">
+          <span>📋</span> Fácil de compartir
+        </div>
+      </div>
+      <p style="margin-top: 1rem;">Tus invitados solo necesitan abrir la cámara de su teléfono, apuntar al QR y conectarse automáticamente sin escribir contraseñas.</p>
+    </div>
+
+    <div class="security-note">
+      <p>
+        <span>⚠️</span>
+        <span><strong>Nota de seguridad:</strong> Este QR contiene tu contraseña WiFi. Compártelo solo con personas de confianza.</span>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script>
+    let qrCodeElement;
+    
+    function generateQRCode() {
+      const ssid = document.getElementById('ssid').value;
+      const password = document.getElementById('password').value;
+      const security = document.getElementById('security').value;
+      const hidden = document.getElementById('hidden').value;
+      
+      if (!ssid) {
+        alert("Por favor ingresa el nombre de la red WiFi (SSID).");
+        return;
+      }
+      
+      // Mostrar loading
+      const btn = document.getElementById('generateBtn');
+      btn.innerHTML = '<span class="loading"></span> Generando...';
+      btn.disabled = true;
+      
+      setTimeout(() => {
+        const wifiString = `WIFI:T:${security};S:${ssid};P:${password};H:${hidden};;`;
+        
+        const qr = new QRious({
+          element: document.createElement('canvas'),
+          value: wifiString,
+          size: 280,
+          background: '#ffffff',
+          foreground: '#2d3748'
+        });
+        
+        const qrcodeContainer = document.getElementById('qrcode');
+        qrcodeContainer.innerHTML = '';
+        qrcodeContainer.appendChild(qr.element);
+        qrCodeElement = qr.element;
+        
+        document.getElementById('qrResult').style.display = 'block';
+        showWifiInfo(ssid, password, security, hidden);
+        
+        // Restaurar botón
+        btn.innerHTML = '<span>🎯</span> Generar Código QR';
+        btn.disabled = false;
+        
+        // Scroll suave al resultado
+        document.getElementById('qrResult').scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'nearest' 
+        });
+      }, 800);
+    }
+    
+    function showWifiInfo(ssid, password, security, hidden) {
+      const securityText = security === 'nopass' ? 'Sin contraseña' : security;
+      const info = `
+        <strong>📶 Red:</strong> ${ssid}<br>
+        <strong>🔐 Contraseña:</strong> ${password || '[Sin contraseña]'}<br>
+        <strong>🛡️ Seguridad:</strong> ${securityText}<br>
+        <strong>👁️ Red oculta:</strong> ${hidden === 'true' ? 'Sí' : 'No'}
+      `;
+      document.getElementById('wifiInfo').innerHTML = info;
+    }
+    
+    function downloadQRCode() {
+      if (!qrCodeElement) return;
+      
+      const link = document.createElement('a');
+      link.download = 'wifi-qr-code.png';
+      link.href = qrCodeElement.toDataURL('image/png');
+      link.click();
+    }
+    
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const toggleBtn = document.querySelector('.toggle-btn');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.textContent = '🙈';
+      } else {
+        passwordInput.type = 'password';
+        toggleBtn.textContent = '👁️';
+      }
+    }
+  </script>
+</body>
+</html>
